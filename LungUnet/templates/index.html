@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Segmentation for Cancer Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Upload CT Scan Image</h1>
+        <form id="upload-form" action="{{ url_for('predict') }}" method="POST" enctype="multipart/form-data">
+            <div class="upload-section">
+                <input type="file" id="image-upload" accept="image/*" required>
+                <input type="hidden" id="resized-image" name="resized-image">
+                <button type="submit">Predict</button>
+            </div>
+        </form>
+
+        {% if original_image %}
+            <div class="result-section">
+                <h2>Original and Predicted Mask:</h2>
+                <img src="{{ original_image }}" alt="Original and Predicted Mask" class="result-image">
+                <h2>Result: {{ result }}</h2>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('upload-form');
+        const imageUpload = document.getElementById('image-upload');
+        const resizedImageInput = document.getElementById('resized-image');
+
+        uploadForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const file = imageUpload.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 128;
+                    canvas.height = 128;
+
+                    ctx.drawImage(img, 0, 0, 128, 128);
+
+                    const dataUrl = canvas.toDataURL('image/jpeg');
+                    resizedImageInput.value = dataUrl;
+
+                    uploadForm.submit(); // Submit the form after resizing the image
+                };
+            };
+
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
